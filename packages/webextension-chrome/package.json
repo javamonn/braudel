@@ -4,8 +4,22 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "webpack:build": "webpack",
+    "re:build": "rescript",
+    "re:start": "rescript build -w",
+    "web-ext:run": "web-ext run -t chromium -s ./build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@jlongster/sql.js": "^1.6.7",
+    "absurd-sql": "^0.0.53",
+    "copy-webpack-plugin": "^9.0.1",
+    "process": "^0.11.10",
+    "rescript": "^9.1.4",
+    "web-ext": "^6.4.0",
+    "webpack": "^5.52.1",
+    "webpack-cli": "^4.8.0"
+  }
 }
