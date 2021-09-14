@@ -5,6 +5,7 @@
     "dir": "src",
     "subdirs": true
   },
+  "bs-dependencies": ["rescript-webapi"],
   "package-specs": [
     {
       "module": "es6",

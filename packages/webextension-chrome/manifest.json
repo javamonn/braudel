@@ -4,8 +4,7 @@
   "version": "1.0",
   "manifest_version": 3,
   "background": {
-    "service_worker": "service-worker.js"
+    "service_worker": "ServiceWorker.js"
   },
-  "permissions": ["storage"]
-
+  "permissions": ["storage", "unlimitedStorage", "webNavigation"]
 }
