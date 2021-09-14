@@ -32,15 +32,105 @@ WebNavigation.addOnCommittedListener((details: WebNavigation.committedDetails) =
           ->IDBTransaction.objectStore(PendingHistoryItem.objectStoreName)
           ->IDBObjectStore.add(StructuredClonable.make(item))
       },
-    ) |> Js.Promise.then_(_ => {
-      Services.Logger.log("onCommitted", item)
+    )
+    |> Js.Promise.then_(_ => {
+      Services.Logger.log("onCommitted", `handled event: ${details.url}`)
+      Js.Promise.resolve()
+    })
+    |> Js.Promise.catch(error => {
+      Services.Logger.error(
+        "onCommitted",
+        `failed to handle event: ${details.url}`,
+        Services.Logger.PromiseError(error),
+      )
       Js.Promise.resolve()
     })
   })
 })
 
+WebNavigation.addOnDOMContentLoadedListener((
+  domContentLoadedDetails: WebNavigation.domContentLoadedDetails,
+) => {
+  open Models
+  open Externals.IndexedDB
 
+  let _ = Js.Promise.all2((
+    Services.IndexedDB.open_(),
+    Services.WebExtension.executeScript(
+      ~tabId=domContentLoadedDetails.tabId,
+      ~filePath=Config.injectedScriptGetHistoryDetailsPath,
+    ),
+  )) |> Js.Promise.then_(((db, historyDetails: Models.InjectedScriptGetHistoryDetailsResult.t)) => {
+    let pendingHistoryItemId = PendingHistoryItem.makeId(
+      ~tabId=string_of_int(domContentLoadedDetails.tabId),
+      ~frameId=string_of_int(domContentLoadedDetails.frameId),
+      ~processId=string_of_int(domContentLoadedDetails.processId),
+    )
 
-WebNavigation.addOnDOMContentLoadedListener((details: WebNavigation.domContentLoadedDetails) => {
+    Services.IndexedDB.transaction(
+      ~db,
+      ~objectStoreNames=[
+        PendingHistoryItem.objectStoreName,
+        HistoryItem.objectStoreName,
+        FullTextSearchHistoryItem.objectStoreName,
+      ],
+      ~mode=#readwrite,
+      ~durability=#strict,
+      transaction => {
+        Services.IndexedDB.openCursor(
+          ~objectStore=IDBTransaction.objectStore(transaction, PendingHistoryItem.objectStoreName),
+          pendingHistoryItemId,
+        ) |> Js.Promise.then_((
+          pendingHistoryItemCursor: IDBCursorWithValue.t<Models.PendingHistoryItem.t>,
+        ) => {
+          switch IDBCursorWithValue.value(pendingHistoryItemCursor) {
+          | Some(pendingHistoryItem) =>
+            let historyItem = Models.HistoryItem.make(
+              ~id=Externals.Crypto.randomUUID(),
+              ~createdAt=Js.Date.make(),
+              ~textContent=historyDetails.textContent,
+              ~title=historyDetails.title,
+              ~url=domContentLoadedDetails.url,
+              ~favicon=historyDetails.favicon,
+              ~transitionType=pendingHistoryItem.transitionType,
+              ~transitionQualifiers=pendingHistoryItem.transitionQualifiers,
+              ~tabId=domContentLoadedDetails.tabId,
+              ~frameId=domContentLoadedDetails.frameId,
+              ~processId=domContentLoadedDetails.processId,
+            )
+            let fullTextSearchHistoryItem = Models.FullTextSearchHistoryItem.fromHistoryItem(
+              historyItem,
+            )
 
+            let _ =
+              transaction
+              ->IDBTransaction.objectStore(Models.HistoryItem.objectStoreName)
+              ->IDBObjectStore.add(StructuredClonable.make(historyItem))
+            let _ =
+              transaction
+              ->IDBTransaction.objectStore(Models.FullTextSearchHistoryItem.objectStoreName)
+              ->IDBObjectStore.add(StructuredClonable.make(fullTextSearchHistoryItem))
+            let _ = IDBCursorWithValue.delete(pendingHistoryItemCursor)
+
+            Js.Promise.resolve()
+          | None => Js.Promise.reject(Services.IndexedDB.EmptyCursor)
+          }
+        })
+      },
+    )
+    |> Js.Promise.then_(_ => {
+      Services.Logger.log("onDOMContentLoaded", `handled event: ${domContentLoadedDetails.url}`)
+
+      Js.Promise.resolve()
+    })
+    |> Js.Promise.catch(error => {
+      Services.Logger.error(
+        "onDOMContentLoaded",
+        `failed to handle event: ${domContentLoadedDetails.url}`,
+        Services.Logger.PromiseError(error),
+      )
+
+      Js.Promise.resolve()
+    })
+  })
 })

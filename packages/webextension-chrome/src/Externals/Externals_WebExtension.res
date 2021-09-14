@@ -54,3 +54,18 @@ module WebNavigation = {
   @scope(("chrome", "webNavigation", "onDOMContentLoaded")) @val
   external addOnDOMContentLoadedListener: (domContentLoadedDetails => unit) => unit = "addListener"
 }
+
+module Scripting = {
+  type injectionTarget = {
+    tabId: int,
+    allFrames: option<bool>,
+  }
+  type scriptInjection<'a, 'b> = {
+    target: injectionTarget,
+    files: option<array<string>>,
+    func: option<'a => 'b>,
+  }
+
+  @scope(("chrome", "scripting")) @val
+  external executeScript: (scriptInjection<'a, 'b>, array<'c> => unit) => unit = "executeScript"
+}

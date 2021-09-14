@@ -12,25 +12,30 @@ module StructuredClonable = {
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/IDBRequest
-module MakeIDBRequest = (
-  Config: {
-    type resultType
-  },
-) => {
-  type t
+module IDBRequest = {
+  type t<'a>
   exception Error(option<Js.Exn.t>)
   @send
   external addEventListener: (
-    t,
+    t<'a>,
     @string
     [
       | #success(Dom.event => unit)
       | #error(Dom.event => unit)
     ],
   ) => unit = "addEventListener"
+  @send
+  external removeEventListener: (
+    t<'a>,
+    @string
+    [
+      | #success(Dom.event => unit)
+      | #error(Dom.event => unit)
+    ],
+  ) => unit = "removeEventListener"
 
-  @get external result: t => option<Config.resultType> = "result"
-  @get external error: t => option<Js.Exn.t> = "error"
+  @get external result: t<'a> => option<'a> = "result"
+  @get external error: t<'a> => option<Js.Exn.t> = "error"
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/IDBIndex
@@ -38,24 +43,29 @@ module IDBIndex = {
   type t
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/API/IDBCursorWithValue
+module IDBCursorWithValue = {
+  type t<'a>
+
+  @get external value: t<'a> => option<'a> = "value"
+  @send external delete: t<'a> => IDBRequest.t<unit> = "delete"
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore
 module IDBObjectStore = {
-  type t
+  type t<'a>
   type objectParameters = {
     unique: option<bool>,
     multiEntry: option<bool>,
   }
-  module AddIDBRequest = MakeIDBRequest({
-    type resultType = unit
-  })
-  module PutIDBRequest = MakeIDBRequest({
-    type resultType = unit
-  })
 
   @send
-  external createIndex: (t, string, string, option<objectParameters>) => IDBIndex.t = "createIndex"
-  @send external add: (t, StructuredClonable.t<'a>) => AddIDBRequest.t = "add"
-  @send external put: (t, StructuredClonable.t<'a>) => PutIDBRequest.t = "put"
+  external createIndex: (t<'a>, string, string, option<objectParameters>) => IDBIndex.t =
+    "createIndex"
+  @send external add: (t<'a>, StructuredClonable.t<'a>) => IDBRequest.t<unit> = "add"
+  @send external put: (t<'a>, StructuredClonable.t<'a>) => IDBRequest.t<unit> = "put"
+  @send
+  external openCursor: (t<'a>, string) => IDBRequest.t<IDBCursorWithValue.t<'a>> = "openCursor"
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/IDBTransaction
@@ -75,8 +85,18 @@ module IDBTransaction = {
       | #abort(Dom.event => unit)
     ],
   ) => unit = "addEventListener"
+  @send
+  external removeEventListener: (
+    t,
+    @string
+    [
+      | #complete(Dom.event => unit)
+      | #error(Dom.event => unit)
+      | #abort(Dom.event => unit)
+    ],
+  ) => unit = "removeEventListener"
 
-  @send external objectStore: (t, string) => IDBObjectStore.t = "objectStore"
+  @send external objectStore: (t, string) => IDBObjectStore.t<'a> = "objectStore"
   @get external error: t => option<Js.Exn.t> = "error"
 }
 
@@ -101,7 +121,7 @@ module IDBDatabase = {
   @get external name: t => string = "name"
   @get external version: t => int = "version"
   @send
-  external createObjectStore: (t, string, option<createObjectStoreParams>) => IDBObjectStore.t =
+  external createObjectStore: (t, string, option<createObjectStoreParams>) => IDBObjectStore.t<'a> =
     "createObjectStore"
 
   @send
@@ -115,9 +135,8 @@ module IDBDatabase = {
 
 // https://developer.mozilla.org/en-US/docs/Web/API/IDBOpenDBRequest
 module IDBOpenDBRequest = {
-  include MakeIDBRequest({
-    type resultType = IDBDatabase.t
-  })
+  type t = IDBDatabase.t
+  exception Error(option<Js.Exn.t>)
 
   @send
   external addEventListener: (
@@ -130,6 +149,21 @@ module IDBOpenDBRequest = {
       | #upgradeneeded(Event.versionChange => unit)
     ],
   ) => unit = "addEventListener"
+
+  @send
+  external removeEventListener: (
+    t,
+    @string
+    [
+      | #success(Event.success => unit)
+      | #error(Event.error => unit)
+      | #blocked(Event.blocked => unit)
+      | #upgradeneeded(Event.versionChange => unit)
+    ],
+  ) => unit = "removeEventListener"
+
+  @get external result: t => option<t> = "result"
+  @get external error: t => option<Js.Exn.t> = "error"
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/IDBFactory
