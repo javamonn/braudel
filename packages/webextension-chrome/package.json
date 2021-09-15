@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm run re:build && npm run webpack:build",
+    "build": "npm run re:build && npm run webpack:build && npm run webpack:post-build",
     "webpack:build": "webpack",
+    "webpack:post-build": "node ./scripts/wrap-injected-scripts-with-executor.mjs",
     "re:build": "rescript",
     "re:start": "rescript build -w",
     "web-ext:run": "web-ext run -t chromium -s ./build",
