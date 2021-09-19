@@ -4,3 +4,4 @@ module Navigator = Externals_Navigator
 module Crypto = Externals_Crypto
 module Intl = Externals_Intl
 module Stemmer = Externals_Stemmer
+module Readability = Externals_Readability

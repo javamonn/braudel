@@ -91,7 +91,7 @@ WebNavigation.addOnDOMContentLoadedListener((
               ~textContent=historyDetails.textContent,
               ~title=historyDetails.title,
               ~url=domContentLoadedDetails.url,
-              ~favicon=historyDetails.favicon,
+              ~faviconUrl=historyDetails.faviconUrl,
               ~transitionType=pendingHistoryItem.transitionType,
               ~transitionQualifiers=pendingHistoryItem.transitionQualifiers,
               ~tabId=domContentLoadedDetails.tabId,
