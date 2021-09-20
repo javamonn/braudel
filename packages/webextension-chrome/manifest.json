@@ -6,5 +6,6 @@
   "background": {
     "service_worker": "ServiceWorker.js"
   },
-  "permissions": ["storage", "unlimitedStorage", "webNavigation"]
+  "permissions": ["storage", "unlimitedStorage", "webNavigation", "scripting"],
+  "host_permissions": ["<all_urls>"]
 }

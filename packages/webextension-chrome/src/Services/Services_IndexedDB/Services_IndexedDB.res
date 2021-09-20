@@ -95,12 +95,14 @@ let transaction = (~db, ~objectStoreNames, ~mode, ~durability, cb) => {
           _ => {
             onRemoveEventListeners()
             reject(. IDBTransaction.Error(IDBTransaction.error(transaction)))
+            Services_Logger.log("Services_IndexedDB", "transaction error")
           },
         ),
         #abort(
           _ => {
             onRemoveEventListeners()
             reject(. IDBTransaction.Abort)
+            Services_Logger.log("Services_IndexedDB", "transaction abort")
           },
         ),
       ])

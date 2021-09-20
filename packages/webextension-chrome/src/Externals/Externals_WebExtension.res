@@ -56,16 +56,22 @@ module WebNavigation = {
 }
 
 module Scripting = {
+  @deriving(abstract)
   type injectionTarget = {
     tabId: int,
-    allFrames: option<bool>,
+    @optional allFrames: bool,
   }
+  @deriving(abstract)
   type scriptInjection<'a, 'b> = {
     target: injectionTarget,
-    files: option<array<string>>,
-    func: option<'a => 'b>,
+    @optional files: array<string>,
+  }
+  type injectionResult<'a> = {
+    frameId: int,
+    result: Js.Nullable.t<'a>,
   }
 
   @scope(("chrome", "scripting")) @val
-  external executeScript: (scriptInjection<'a, 'b>, array<'c> => unit) => unit = "executeScript"
+  external executeScript: (scriptInjection<'a, 'b>, array<injectionResult<'c>> => unit) => unit =
+    "executeScript"
 }

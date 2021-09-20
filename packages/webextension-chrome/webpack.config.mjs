@@ -1,8 +1,9 @@
 import path from "path";
 import CopyPlugin from "copy-webpack-plugin";
+import webpack from "webpack";
 
-const SRC_DIR = new URL("./src", import.meta.url).pathname
-export const BUILD_DIR = new URL("./build", import.meta.url).pathname
+const SRC_DIR = new URL("./src", import.meta.url).pathname;
+export const BUILD_DIR = new URL("./build", import.meta.url).pathname;
 export const injectedScripts = ["InjectedScripts_GetHistoryDetails"];
 
 const config = {
@@ -33,6 +34,11 @@ const config = {
       patterns: [
         { from: "manifest.json", to: path.resolve(BUILD_DIR, "manifest.json") },
       ],
+    }),
+    new webpack.DefinePlugin({
+      "process.env.INJECTED_SCRIPT_GET_HISTORY_DETAILS_PATH": JSON.stringify(
+        "./InjectedScripts_GetHistoryDetails.js"
+      ),
     }),
   ],
 };

@@ -5,3 +5,5 @@ module Crypto = Externals_Crypto
 module Intl = Externals_Intl
 module Stemmer = Externals_Stemmer
 module Readability = Externals_Readability
+module WebapiExtension = Externals_WebapiExtension
+module UUID = Externals_UUID
