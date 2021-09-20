@@ -1,0 +1,37 @@
+{
+  "name": "@braudel/web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "next start -p $PORT",
+    "start:dev": "npm run res:dev && npm run start:dev",
+    "build": "npm run res:build && npm run next:build",
+    "next:dev": "next",
+    "next:build": "next build",
+    "res:dev": "rescript build -w",
+    "res:clean": "rescript clean",
+    "res:build": "rescript build"
+  },
+  "devDependencies": {
+    "@fontsource/roboto-mono": "^4.5.0",
+    "@rescript/react": "^0.10.3",
+    "autoprefixer": "^10.3.4",
+    "cssnano": "^5.0.8",
+    "gentype": "^4.2.0",
+    "next-transpile-modules": "^8.0.0",
+    "postcss": "^8.3.6",
+    "postcss-cli": "^8.3.1",
+    "rescript": "^9.1.4",
+    "rescript-classnames": "^6.0.0",
+    "rescript-material-ui": "^2.1.2",
+    "tailwindcss": "^2.2.15"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "next": "^11.1.2",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  }
+}
