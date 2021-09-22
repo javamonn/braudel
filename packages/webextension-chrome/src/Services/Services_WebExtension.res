@@ -117,7 +117,7 @@ let handleNavigationDOMContentLoaded = (
               transaction,
               PendingHistoryItem.objectStoreName,
             ),
-            pendingHistoryItemId,
+            IDBKeyRange.only(pendingHistoryItemId),
           ) |> Js.Promise.then_((
             pendingHistoryItemCursor: IDBCursorWithValue.t<Models.PendingHistoryItem.t>,
           ) => {

@@ -112,8 +112,82 @@ let transaction = (~db, ~objectStoreNames, ~mode, ~durability, cb) => {
   })
 }
 
-let openCursor = (~objectStore, query) => {
-  let cursorReq = IDBObjectStore.openCursor(objectStore, query)
+module Index = {
+  let getAll = (index, keyRange) => {
+    let request = IDBIndex.getAll(index, keyRange)
+
+    Js.Promise.make((~resolve, ~reject) => {
+      let eventListeners = ref(None)
+
+      eventListeners :=
+        Some([
+          #success(
+            _ => {
+              removeEventListeners(request, IDBRequest.removeEventListener, eventListeners.contents)
+              switch IDBRequest.result(request) {
+              | Some(r) => resolve(. r)
+              | None => reject(. IDBRequest.Error(None))
+              }
+            },
+          ),
+          #error(
+            _ => {
+              removeEventListeners(request, IDBRequest.removeEventListener, eventListeners.contents)
+              reject(. IDBRequest.Error(IDBRequest.error(request)))
+            },
+          ),
+        ])
+
+      let _ = addEventListeners(request, IDBRequest.addEventListener, eventListeners.contents)
+    })
+  }
+}
+
+let iterateCursor = (~objectStore, ~keyCursor=false, ~onValue, query) => {
+  let cursorReq = keyCursor
+    ? IDBObjectStore.openKeyCursor(objectStore, query)
+    : IDBObjectStore.openCursor(objectStore, query)
+
+  Js.Promise.make((~resolve, ~reject) => {
+    let eventListeners = ref(None)
+
+    eventListeners :=
+      Some([
+        #success(
+          _ => {
+            let unit_ = ()
+            switch (
+              cursorReq->IDBRequest.result,
+              cursorReq->IDBRequest.result->Belt.Option.flatMap(IDBCursorWithValue.value),
+            ) {
+            | (Some(result), Some(value)) =>
+              let _ = onValue(value)
+              let _ = IDBCursorWithValue.continue(result)
+            | _ =>
+              removeEventListeners(
+                cursorReq,
+                IDBRequest.removeEventListener,
+                eventListeners.contents,
+              )
+              resolve(. unit_)
+            }
+          },
+        ),
+        #error(
+          _ => {
+            removeEventListeners(cursorReq, IDBRequest.removeEventListener, eventListeners.contents)
+            reject(. IDBRequest.Error(IDBRequest.error(cursorReq)))
+          },
+        ),
+      ])
+    let _ = addEventListeners(cursorReq, IDBRequest.addEventListener, eventListeners.contents)
+  })
+}
+
+let openCursor = (~objectStore, ~keyCursor=false, query) => {
+  let cursorReq = keyCursor
+    ? IDBObjectStore.openKeyCursor(objectStore, query)
+    : IDBObjectStore.openCursor(objectStore, query)
 
   Js.Promise.make((~resolve, ~reject) => {
     let eventListeners = ref(None)

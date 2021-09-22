@@ -11,6 +11,13 @@ module StructuredClonable = {
   external unwrap: t<'a> => 'a = "%identity"
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/API/IDBKeyRange
+module IDBKeyRange = {
+  type t
+
+  @scope("IDBKeyRange") @send external only: string => t = "only"
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/API/IDBRequest
 module IDBRequest = {
   type t<'a>
@@ -41,6 +48,8 @@ module IDBRequest = {
 // https://developer.mozilla.org/en-US/docs/Web/API/IDBIndex
 module IDBIndex = {
   type t
+
+  @send external getAll: (t, IDBKeyRange.t) => IDBRequest.t<array<'a>> = "getAll"
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/IDBCursorWithValue
@@ -49,6 +58,7 @@ module IDBCursorWithValue = {
 
   @get external value: t<'a> => option<'a> = "value"
   @send external delete: t<'a> => IDBRequest.t<unit> = "delete"
+  @send external continue: t<'a> => unit = "continue"
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore
@@ -65,7 +75,13 @@ module IDBObjectStore = {
   @send external add: (t<'a>, StructuredClonable.t<'a>) => IDBRequest.t<unit> = "add"
   @send external put: (t<'a>, StructuredClonable.t<'a>) => IDBRequest.t<unit> = "put"
   @send
-  external openCursor: (t<'a>, string) => IDBRequest.t<IDBCursorWithValue.t<'a>> = "openCursor"
+  external openCursor: (t<'a>, IDBKeyRange.t) => IDBRequest.t<IDBCursorWithValue.t<'a>> =
+    "openCursor"
+  @send
+  external openKeyCursor: (t<'a>, IDBKeyRange.t) => IDBRequest.t<IDBCursorWithValue.t<'a>> =
+    "openKeyCursor"
+  @send
+  external index: (t<'a>, string) => IDBIndex.t = "index"
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/IDBTransaction
