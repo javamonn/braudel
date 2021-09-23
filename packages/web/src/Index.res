@@ -48,7 +48,7 @@ let default = () => {
             )}
           </li>
           <li>
-            {React.string("Full text search the contents of you browsing history and metadata.")}
+            {React.string("Full text search the contents of your browsing history and metadata.")}
           </li>
           <li> {React.string("Organize and manage bookmarks and sources.")} </li>
         </ul>
